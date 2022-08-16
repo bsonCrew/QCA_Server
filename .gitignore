@@ -3,6 +3,7 @@
 
 .DS_Store
 
+./bin/main/application.properties
 HELP.md
 .gradle
 build/
