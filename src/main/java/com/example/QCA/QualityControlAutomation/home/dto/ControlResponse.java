@@ -5,19 +5,18 @@ import lombok.Getter;
 @Getter
 public class ControlResponse {
 
-    private String url;
+    // 웹 사이트 이름
+    String label;
 
-    private String name;
+    // 웹 사이트 주소
+    String homepage;
 
-    private int compatibilityScore;
+    // 반환할 정보 (audits ~~~)
+    int totalScore;
 
-    private int accessibilityScore;
-
-    private int opennessScore;
-
-    private int connectivityScore;
-
-    private int convenienceScore;
-
-    private int totalScore;
+    public ControlResponse(String label, String homepage, int totalScore) {
+        this.label = label;
+        this.homepage = homepage;
+        this.totalScore = totalScore;
+    }
 }
