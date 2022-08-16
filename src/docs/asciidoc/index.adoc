@@ -1,0 +1,18 @@
+= QCA API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs // 문서에 표기되는 코드들의 하이라이팅을 highlightjs를 사용
+:toc: left // toc (Table Of Contents)를 문서의 좌측에 두기
+:toclevels: 2
+:sectlinks:
+
+[[List-API]]
+== List API
+상위 5개 웹사이트에 대한 정보를 반환
+
+operation::list-get[snippets='http-request,http-response,response-fields']
+
+[[Control-API]]
+== Control API
+특정 URL에 대한 검사를 요청하고, 검사 결과를 반환
+
