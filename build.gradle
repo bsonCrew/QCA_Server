@@ -1,7 +1,7 @@
 plugins {
 	id 'org.springframework.boot' version '2.7.2'
 	id 'io.spring.dependency-management' version '1.0.12.RELEASE'
-	id 'org.asciidoctor.convert' version '1.5.8'
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
 	id 'java'
 }
 
@@ -9,7 +9,12 @@ group = 'com.example.QCA'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
+ext {
+	set('snippetsDir', file("build/generated-snippets"))
+}
+
 configurations {
+	asciidoctorExtensions
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
@@ -17,10 +22,6 @@ configurations {
 
 repositories {
 	mavenCentral()
-}
-
-ext {
-	set('snippetsDir', file("build/generated-snippets"))
 }
 
 dependencies {
@@ -32,15 +33,46 @@ dependencies {
 	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	// Spring REST docs
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 }
 
-tasks.named('test') {
+test {
 	outputs.dir snippetsDir
 	useJUnitPlatform()
 }
 
-tasks.named('asciidoctor') {
-	inputs.dir snippetsDir
-	dependsOn test
+asciidoctor { // asciidoctor 작업 구성
+	dependsOn test // test 작업 이후에 작동하도록 하는 설정
+	configurations 'asciidoctorExtensions' // 위에서 작성한 configuration 적용
+	inputs.dir snippetsDir // snippetsDir 를 입력으로 구성
+
+	// source가 없으면 .adoc파일을 전부 html로 만들어버림
+	// source 지정시 특정 adoc만 HTML로 만든다.
+	sources{
+		include("**/index.adoc","**/common/*.adoc")
+	}
+
+	// 특정 .adoc에 다른 adoc 파일을 가져와서(include) 사용하고 싶을 경우 경로를 baseDir로 맞춰주는 설정입니다.
+	// 개별 adoc으로 운영한다면 필요 없는 옵션입니다.
+	baseDirFollowsSourceFile()
+}
+
+// static/docs 폴더 비우기
+asciidoctor.doFirst {
+	delete file('src/main/resources/static/docs')
+}
+
+// asccidoctor 작업 이후 생성된 HTML 파일을 static/docs 로 copy
+task copyDocument(type: Copy) {
+	dependsOn asciidoctor
+	from file("build/docs/asciidoc")
+	into file("src/main/resources/static/docs")
+}
+
+// build 의 의존작업 명시
+build {
+	dependsOn copyDocument
 }
