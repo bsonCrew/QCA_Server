@@ -1,9 +1,11 @@
-package com.example.QCA.QualityControlAutomation.home.controller;
+package com.example.QCA.QualityControlAutomation.controller;
 
-import com.example.QCA.QualityControlAutomation.home.dto.ControlResponse;
+import com.example.QCA.QualityControlAutomation.dto.ControlResponse;
 import com.example.QCA.QualityControlAutomation.response.CommonResponse;
 import com.example.QCA.QualityControlAutomation.response.ResponseService;
+import com.example.QCA.QualityControlAutomation.service.ControlService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -14,7 +16,14 @@ import java.util.List;
 @RequestMapping("/api")
 public class HomeController {
 
-    private final ResponseService responseService = new ResponseService();
+    private final ResponseService responseService;
+    private final ControlService controlService;
+
+    @Autowired
+    public HomeController(ResponseService responseService, ControlService controlService) {
+        this.responseService = responseService;
+        this.controlService = controlService;
+    }
 
     @GetMapping("/list")
     public CommonResponse list() {
@@ -36,5 +45,11 @@ public class HomeController {
 //        String url = controlRequest.getUrl();
 //        log.info(url + " 에 대한 POST request, control 호출");
 //        return new ControlResponse();
+//    }
+
+    // label, homepage 쌍을 DB에 저장하기 위해 처음 1회만 사용
+//    @GetMapping("")
+//    public void init() throws Exception {
+//        controlService.setLabelAndHomepage();
 //    }
 }
