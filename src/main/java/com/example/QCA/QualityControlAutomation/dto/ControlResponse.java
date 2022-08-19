@@ -1,4 +1,4 @@
-package com.example.QCA.QualityControlAutomation.home.dto;
+package com.example.QCA.QualityControlAutomation.dto;
 
 import lombok.Getter;
 
