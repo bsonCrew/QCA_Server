@@ -2,12 +2,13 @@ package com.example.QCA.QualityControlAutomation.domain;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
-import java.sql.Date;
-import java.util.List;
+import java.time.LocalDate;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @Entity
 public class ControlResult {
@@ -17,13 +18,14 @@ public class ControlResult {
 
     private String homepage;
 
-    @OneToMany
-    private List<Audit> audits;
+    @Lob
+    private String audits;
 
-    @OneToOne
-    private CategoryScore categoryScore;
+    // lighthouse - 전자정부 가이드 매핑으로 모두 처리된다면, 필요없어짐!
+    @Lob
+    private String categoryScore;
 
-    private Date requestedDate;
+    private LocalDate recentRequestedDate;
 
     public ControlResult(String label, String homepage) {
         this.label = label;

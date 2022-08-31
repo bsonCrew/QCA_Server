@@ -1,5 +1,6 @@
 package com.example.QCA.QualityControlAutomation.controller;
 
+import com.example.QCA.QualityControlAutomation.dto.ControlRequest;
 import com.example.QCA.QualityControlAutomation.dto.ControlResponse;
 import com.example.QCA.QualityControlAutomation.response.CommonResponse;
 import com.example.QCA.QualityControlAutomation.response.ResponseService;
@@ -26,7 +27,7 @@ public class HomeController {
     }
 
     @GetMapping("/list")
-    public CommonResponse list() {
+    public CommonResponse resultList() {
         log.info("GET request, list 호출");
 
         // 임의로 전달할 정보들
@@ -40,16 +41,16 @@ public class HomeController {
         return responseService.getListResponse(list);
     }
 
-//    @PostMapping("/control")
-//    public ControlResponse control(@RequestBody ControlRequest controlRequest) {
-//        String url = controlRequest.getUrl();
-//        log.info(url + " 에 대한 POST request, control 호출");
-//        return new ControlResponse();
-//    }
+    @PostMapping("/control")
+    public CommonResponse controlDetail(@RequestBody ControlRequest controlRequest) throws Exception {
+        String url = controlRequest.getUrl();
+        log.info(url + " 에 대한 POST request, control 호출");
+        return controlService.findControlResult(controlRequest);
+    }
 
     // label, homepage 쌍을 DB에 저장하기 위해 처음 1회만 사용
-//    @GetMapping("")
-//    public void init() throws Exception {
-//        controlService.setLabelAndHomepage();
-//    }
+    @GetMapping("")
+    public void init() throws Exception {
+        controlService.setLabelAndHomepage();
+    }
 }

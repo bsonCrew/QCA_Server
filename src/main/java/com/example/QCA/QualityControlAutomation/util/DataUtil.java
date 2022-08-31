@@ -13,7 +13,7 @@ public class DataUtil {
 
     public List<InitInfo> getLabelAndHomepage() throws Exception {
         List<InitInfo> list = new ArrayList<>();
-        JSONObject jsonObject = (JSONObject) new JSONParser().parse(new FileReader("/Users/bsu/Downloads/file.json"));
+        JSONObject jsonObject = (JSONObject) new JSONParser().parse(new FileReader("/Users/bsu/Desktop/2022OpenSW/file.json"));
 
         JSONArray jsonArray = (JSONArray) jsonObject.get("websites");
 
