@@ -5,7 +5,7 @@ import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 public class ControlRequest {
@@ -17,5 +17,5 @@ public class ControlRequest {
 
     // 검사 수행을 요청한 날짜, 매번 새로운 검사를 수행하지 않기 위해 사용
     @NotNull
-    private Date requestedDate;
+    private LocalDate requestedDate;
 }
