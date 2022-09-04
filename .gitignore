@@ -9,7 +9,7 @@ HELP.md
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-!**src/output
+!**/src/output
 
 # Secured info
 **/src/main/resources/application.properties
