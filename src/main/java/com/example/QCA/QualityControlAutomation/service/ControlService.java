@@ -16,10 +16,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
@@ -79,26 +76,63 @@ public class ControlService {
     private ControlResult operateQualityControl(String label, String homepage, LocalDate requestedDate) throws Exception {
         ControlResult controlResult = new ControlResult(label, homepage);
         controlResult.setRecentRequestedDate(requestedDate);
+        controlResult.setValidator(operateValidator(homepage));
+        operateLighthouse(homepage);
 
-        ProcessBuilder pb = new ProcessBuilder("sh", "lighthouse.sh", homepage);
-        pb.redirectErrorStream(true);
-        pb.directory(new File(filePath));
-        Process process = pb.start();
-        int exitCode = process.waitFor();
-        assert exitCode == 0;
-
-        return parseJson(controlResult);
-    }
-
-    private ControlResult parseJson(ControlResult controlResult) throws Exception {
-        String fileName = controlResult.getHomepage().replace("/", "").replace("http:", "").replace("https:", "");
-        log.info("fileName : {}", fileName);
-        JSONObject jsonObject = (JSONObject) new JSONParser().parse(new FileReader(filePath + "/QCA_Server/src/output/" + fileName + "_output.json"));
+        JSONObject jsonObject = parseJson(homepage.replace("/", "").replace("http:", "").replace("https:", ""));
 
         controlResult.setAudits(jsonObject.get("audits").toString());
         controlResult.setCategoryScore(jsonObject.get("categories").toString());
 
         return controlResult;
+    }
+
+    private String operateValidator(String homepage) throws IOException, InterruptedException {
+        Runtime runtime = Runtime.getRuntime();
+        StringBuilder validator = new StringBuilder();
+        Process process = runtime.exec("java -jar " + filePath + "/node_modules/vnu-jar/build/dist/vnu.jar " + homepage);;
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            String s;
+            while ((s = br.readLine()) != null)
+                validator.append(processValidatorResult(s));
+        } catch (Exception e) {
+            log.error("validator 실행 도중 에러 발생 : {}", e.getMessage());
+        } finally {
+            process.destroy();
+        }
+
+        return validator.toString();
+    }
+
+    private void operateLighthouse(String homepage) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder("sh", "lighthouse.sh", homepage);
+        pb.redirectErrorStream(true);
+        pb.directory(new File(filePath));
+        Process process = pb.start();
+
+        int exitCode = process.waitFor();
+        assert exitCode == 0;
+        process.destroy();
+    }
+
+    private JSONObject processValidatorResult(String s) {
+        JSONObject jsonObject = new JSONObject();
+        String[] tokens = s.split(":");
+        String type = "warning";
+
+        if (!tokens[3].contains(type)) type = "error";
+        String desc = tokens[4];
+
+        jsonObject.put("type", type);
+        jsonObject.put("description", desc);
+
+        return jsonObject;
+    }
+
+    private JSONObject parseJson(String fileName) throws IOException, ParseException {
+        log.info("json Name : {}", fileName);
+        return (JSONObject) new JSONParser().parse(new FileReader(filePath + "/QCA_Server/src/output/" + fileName + "_output.json"));
     }
 
     // 두 날짜의 기간 차이를 달 기준으로 비교하여 반환하는 함수
