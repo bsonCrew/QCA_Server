@@ -19,6 +19,7 @@ public class HomeController {
 
     private final ResponseService responseService;
     private final ControlService controlService;
+    private boolean hasInit = false;
 
     @Autowired
     public HomeController(ResponseService responseService, ControlService controlService) {
@@ -51,6 +52,9 @@ public class HomeController {
     // label, homepage 쌍을 DB에 저장하기 위해 처음 1회만 사용
     @GetMapping("")
     public void init() throws Exception {
-        controlService.setLabelAndHomepage();
+        log.info("DB 초기화");
+        if (!hasInit)
+            controlService.setLabelAndHomepage();
+        hasInit = true;
     }
 }

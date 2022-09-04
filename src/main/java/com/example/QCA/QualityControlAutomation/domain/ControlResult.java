@@ -21,9 +21,11 @@ public class ControlResult {
     @Lob
     private String audits;
 
-    // lighthouse - 전자정부 가이드 매핑으로 모두 처리된다면, 필요없어짐!
     @Lob
     private String categoryScore;
+
+    @Lob
+    private String validator;
 
     private LocalDate recentRequestedDate;
 
