@@ -12,6 +12,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,14 +28,22 @@ public class ControlService {
 
     private final ControlRepository controlRepository;
     private final ResponseService responseService;
+    private final boolean isWindow;
+    private final Environment env;
 
     @Autowired
-    public ControlService(ControlRepository controlRepository, ResponseService responseService) {
+    public ControlService(ControlRepository controlRepository, ResponseService responseService, Environment env) {
         this.controlRepository = controlRepository;
         this.responseService = responseService;
+        this.env = env;
+        this.isWindow = System.getProperty("os.name").toLowerCase().contains("windows");
     }
 
-    private String filePath = "/Users/bsu/Desktop/2022OpenSW";
+    private String filePath;
+
+    private String vnuCommand;
+
+    private String outputPath;
 
     public void setLabelAndHomepage() throws Exception {
         DataUtil dataUtil = new DataUtil();
@@ -55,6 +64,8 @@ public class ControlService {
 
     @Transactional
     public CommonResponse findControlResult(ControlRequest controlRequest) throws Exception {
+        initPath();
+
         String homepage = controlRequest.getUrl();
         LocalDate requestedDate = controlRequest.getRequestedDate();
 
@@ -77,6 +88,10 @@ public class ControlService {
         return responseService.getSingleResponse(findResult);
     }
 
+    //
+    // private methods
+    //
+
     // 검사 수행
     private ControlResult operateQualityControl(String label, String homepage, LocalDate requestedDate) throws Exception {
         ControlResult controlResult = new ControlResult(label, homepage);
@@ -96,7 +111,7 @@ public class ControlService {
         log.info("validator 검사 수행");
         Runtime runtime = Runtime.getRuntime();
         StringBuilder validator = new StringBuilder();
-        Process process = runtime.exec("java -jar " + filePath + "/node_modules/vnu-jar/build/dist/vnu.jar " + homepage);;
+        Process process = runtime.exec(vnuCommand + homepage);
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
             String s;
@@ -119,7 +134,7 @@ public class ControlService {
         Process process = pb.start();
 
         int exitCode = process.waitFor();
-        if (exitCode != 0) throw new RuntimeException();
+        assert exitCode == 0;
         process.destroy();
     }
 
@@ -139,7 +154,7 @@ public class ControlService {
 
     private JSONObject parseJson(String fileName) throws IOException, ParseException {
         log.info("json Name : {}", fileName);
-        return (JSONObject) new JSONParser().parse(new FileReader(filePath + "/QCA_Server/src/output/" + fileName + "_output.json"));
+        return (JSONObject) new JSONParser().parse(new FileReader(outputPath + fileName + "_output.json"));
     }
 
     // 두 날짜의 기간 차이를 달 기준으로 비교하여 반환하는 함수
@@ -150,5 +165,11 @@ public class ControlService {
         // 기간 차이가 1달 이내라면 true 반환
         Period period = Period.between(recentRequestDate, requestedDate);
         return period.getMonths() == 0;
+    }
+
+    private void initPath() {
+        filePath = isWindow ? env.getProperty("windowsFilePath") : env.getProperty("macFilePath");
+        vnuCommand = "java -jar " + filePath + (isWindow ? env.getProperty("windowsVnuPath") : env.getProperty("macVnuPath")) + " ";
+        outputPath = filePath + (isWindow ? env.getProperty("windowsOutputPath") : env.getProperty("macOutputPath"));
     }
 }

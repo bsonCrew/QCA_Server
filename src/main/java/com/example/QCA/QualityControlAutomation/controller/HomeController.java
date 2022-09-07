@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class HomeController {
 
     private final ControlService controlService;
-    private boolean hasInit = false;
 
     @Autowired
     public HomeController(ControlService controlService) {
@@ -22,25 +21,23 @@ public class HomeController {
 
     @GetMapping(value = "/list")
     @ResponseBody
-    public CommonResponse resultList() throws Exception {
-        dbInit();
+    public CommonResponse resultList() {
         log.info("GET request, resultList 호출");
         return controlService.findList();
     }
 
     @PostMapping("/control")
     public CommonResponse controlDetail(@RequestBody ControlRequest controlRequest) throws Exception {
-        dbInit();
         String url = controlRequest.getUrl();
         log.info(url + " 에 대한 POST request, control 호출");
         return controlService.findControlResult(controlRequest);
     }
 
-    private void dbInit() throws Exception {
-        if (!hasInit) {
-            log.info("DB 초기화");
-            controlService.setLabelAndHomepage();
-        }
-        hasInit = true;
-    }
+    // 처음 한 번만 실행
+//    @GetMapping()
+//    public void dbInit() throws Exception {
+//        log.info("DB 초기화");
+//        controlService.setLabelAndHomepage();
+//        log.info("DB 초기화 완료");
+//    }
 }
