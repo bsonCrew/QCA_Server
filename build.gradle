@@ -40,6 +40,9 @@ dependencies {
 
 	// json parsing
 	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+
+	// @NonNull
+	implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 test {

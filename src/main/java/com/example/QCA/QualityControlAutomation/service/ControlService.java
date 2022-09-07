@@ -8,21 +8,18 @@ import com.example.QCA.QualityControlAutomation.response.CommonResponse;
 import com.example.QCA.QualityControlAutomation.response.ResponseService;
 import com.example.QCA.QualityControlAutomation.util.DataUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.jni.Time;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -30,13 +27,14 @@ public class ControlService {
 
     private final ControlRepository controlRepository;
     private final ResponseService responseService;
-    private final String filePath = "/Users/bsu/Desktop/2022OpenSW";
 
     @Autowired
     public ControlService(ControlRepository controlRepository, ResponseService responseService) {
         this.controlRepository = controlRepository;
         this.responseService = responseService;
     }
+
+    private String filePath = "/Users/bsu/Desktop/2022OpenSW";
 
     public void setLabelAndHomepage() throws Exception {
         DataUtil dataUtil = new DataUtil();
@@ -49,6 +47,13 @@ public class ControlService {
         controlRepository.saveAll(controlResultList);
     }
 
+    public CommonResponse findList() {
+        List<ControlResult> list = controlRepository.findTop5ByRecentRequestedDateIsNotNullOrderByRecentRequestedDateDesc();
+        if (list.isEmpty()) list.add(new ControlResult());
+        return responseService.getListResponse(list);
+    }
+
+    @Transactional
     public CommonResponse findControlResult(ControlRequest controlRequest) throws Exception {
         String homepage = controlRequest.getUrl();
         LocalDate requestedDate = controlRequest.getRequestedDate();
@@ -87,7 +92,8 @@ public class ControlService {
         return controlResult;
     }
 
-    private String operateValidator(String homepage) throws IOException, InterruptedException {
+    private String operateValidator(String homepage) throws IOException {
+        log.info("validator 검사 수행");
         Runtime runtime = Runtime.getRuntime();
         StringBuilder validator = new StringBuilder();
         Process process = runtime.exec("java -jar " + filePath + "/node_modules/vnu-jar/build/dist/vnu.jar " + homepage);;
@@ -106,13 +112,14 @@ public class ControlService {
     }
 
     private void operateLighthouse(String homepage) throws IOException, InterruptedException {
+        log.info("lighthouse 검사 수행");
         ProcessBuilder pb = new ProcessBuilder("sh", "lighthouse.sh", homepage);
         pb.redirectErrorStream(true);
         pb.directory(new File(filePath));
         Process process = pb.start();
 
         int exitCode = process.waitFor();
-        assert exitCode == 0;
+        if (exitCode != 0) throw new RuntimeException();
         process.destroy();
     }
 

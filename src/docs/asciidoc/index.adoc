@@ -8,11 +8,16 @@
 
 [[List-API]]
 == List API
-상위 5개 웹사이트에 대한 정보를 반환
+가장 최근 진단한 웹사이트 5개에 대한 정보를 반환
 
 operation::list-get[snippets='http-request,http-response,response-fields']
+- `JSONArray` 형태로 반환한다.
+- **DB**에 저장된 진단 결과가 없다면, 모든 필드가 **`null`**인 `JSONArray[0]` 을 반환한다.
 
 [[Control-API]]
 == Control API
 특정 URL에 대한 검사를 요청하고, 검사 결과를 반환
 
+operation::control-post[snippets='http-request,http-response,response-fields']
+- **validator** 검사 결과가 없을 수도 있다.
+- 없는 경우는 오류가 발견되지 않은 경우를 의미한다.
