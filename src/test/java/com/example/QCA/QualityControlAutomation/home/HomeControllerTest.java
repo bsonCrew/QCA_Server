@@ -14,6 +14,8 @@ import java.time.LocalDate;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
+
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,6 +62,7 @@ class HomeControllerTest {
 
     @DisplayName("URL 진단 요청")
     @Test
+    @Transactional
     void controlTest() throws Exception {
         mockMvc.perform(
                 MockMvcRequestBuilders
