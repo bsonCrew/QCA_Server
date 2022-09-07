@@ -3,6 +3,7 @@ package com.example.QCA.QualityControlAutomation.domain;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ public class ControlResult {
     @Lob
     private String validator;
 
+    @Nullable
     private LocalDate recentRequestedDate;
 
     public ControlResult(String label, String homepage) {
