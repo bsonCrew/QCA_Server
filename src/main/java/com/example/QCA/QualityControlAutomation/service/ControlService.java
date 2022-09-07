@@ -169,7 +169,7 @@ public class ControlService {
 
     private void initPath() {
         filePath = isWindow ? env.getProperty("windowsFilePath") : env.getProperty("macFilePath");
-        vnuCommand = "java -jar " + filePath + (isWindow ? env.getProperty("windowsVnuPath") : env.getProperty("macVnuPath")) + " ";
-        outputPath = filePath + (isWindow ? env.getProperty("windowsOutputPath") : env.getProperty("macOutputPath"));
+        vnuCommand = "java -jar " + filePath + env.getProperty("vnuPath") + " ";
+        outputPath = filePath + env.getProperty("outputPath");
     }
 }
