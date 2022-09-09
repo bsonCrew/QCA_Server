@@ -1,8 +1,8 @@
 = QCA API 문서
 :doctype: book
 :icons: font
-:source-highlighter: highlightjs // 문서에 표기되는 코드들의 하이라이팅을 highlightjs를 사용
-:toc: left // toc (Table Of Contents)를 문서의 좌측에 두기
+:source-highlighter: highlightjs
+:toc: left
 :toclevels: 2
 :sectlinks:
 
@@ -11,7 +11,7 @@
 가장 최근 진단한 웹사이트 5개에 대한 정보를 반환
 
 operation::list-get[snippets='http-request,http-response,response-fields']
-- `JSONArray` 형태로 반환한다.
+- `data` 는 `JSONArray` 형태로 반환된다.
 - **DB**에 저장된 진단 결과가 없다면, 모든 필드가 **`null`**인 `JSONArray[0]` 을 반환한다.
 
 [[Control-API]]
@@ -19,5 +19,5 @@ operation::list-get[snippets='http-request,http-response,response-fields']
 특정 URL에 대한 검사를 요청하고, 검사 결과를 반환
 
 operation::control-post[snippets='http-request,http-response,response-fields']
-- **validator** 검사 결과가 없을 수도 있다.
-- 없는 경우는 오류가 발견되지 않은 경우를 의미한다.
+- **validator** 검사 결과가 없을 수도 있다. 없는 경우는 오류가 발견되지 않은 경우를 의미한다.
+- 마찬가지로 **robots.txt** 파싱 결과도 없을 수 있다. robots.txt가 유효하지 않은 경우를 의미한다.
