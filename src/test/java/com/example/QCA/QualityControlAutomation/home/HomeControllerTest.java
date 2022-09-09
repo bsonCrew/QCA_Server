@@ -53,6 +53,7 @@ class HomeControllerTest {
                                     fieldWithPath("data[].audits").type(JsonFieldType.STRING).description("웹사이트에 대한 lighthouse 검사 결과").optional(),
                                     fieldWithPath("data[].categoryScore").type(JsonFieldType.STRING).description("lighthouse 점수").optional(),
                                     fieldWithPath("data[].validator").type(JsonFieldType.STRING).description("W3C validator 결과").optional(),
+                                    fieldWithPath("data[].robot").type(JsonFieldType.BOOLEAN).description("robots.txt 유효 여부").optional(),
                                     fieldWithPath("data[].recentRequestedDate").type(JsonFieldType.STRING).description("최근 검사 요청 날짜").optional()
                                 )
                     )
@@ -88,6 +89,7 @@ class HomeControllerTest {
                                     fieldWithPath("data.audits").type(JsonFieldType.STRING).description("웹사이트에 대한 lighthouse 검사 결과"),
                                     fieldWithPath("data.categoryScore").type(JsonFieldType.STRING).description("lighthouse 점수"),
                                     fieldWithPath("data.validator").type(JsonFieldType.STRING).description("W3C validator 결과"),
+                                    fieldWithPath("data.robot").type(JsonFieldType.BOOLEAN).description("robots.txt 유효 여부"),
                                     fieldWithPath("data.recentRequestedDate").type(JsonFieldType.STRING).description("최근 검사 요청 날짜")
                             )
                         )

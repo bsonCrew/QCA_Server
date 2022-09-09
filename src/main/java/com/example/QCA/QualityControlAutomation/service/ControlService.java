@@ -8,6 +8,7 @@ import com.example.QCA.QualityControlAutomation.response.CommonResponse;
 import com.example.QCA.QualityControlAutomation.response.ResponseService;
 import com.example.QCA.QualityControlAutomation.util.DataUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -15,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.*;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -97,6 +101,7 @@ public class ControlService {
         ControlResult controlResult = new ControlResult(label, homepage);
         controlResult.setRecentRequestedDate(requestedDate);
         controlResult.setValidator(operateValidator(homepage));
+        controlResult.setRobot(operateRobots(homepage));
         operateLighthouse(homepage);
 
         JSONObject jsonObject = parseJson(homepage.replace("/", "").replace("http:", "").replace("https:", ""));
@@ -110,20 +115,21 @@ public class ControlService {
     private String operateValidator(String homepage) throws IOException {
         log.info("validator 검사 수행");
         Runtime runtime = Runtime.getRuntime();
-        StringBuilder validator = new StringBuilder();
+        JSONArray validator = new JSONArray();
         Process process = runtime.exec(vnuCommand + homepage);
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
             String s;
             while ((s = br.readLine()) != null)
-                validator.append(processValidatorResult(s));
+                validator.add(processValidatorResult(s));
         } catch (Exception e) {
             log.error("validator 실행 도중 에러 발생 : {}", e.getMessage());
         } finally {
             process.destroy();
         }
 
-        return validator.toString();
+        log.info("validator 검사 완료");
+        return validator.toJSONString();
     }
 
     private void operateLighthouse(String homepage) throws IOException, InterruptedException {
@@ -136,6 +142,24 @@ public class ControlService {
         int exitCode = process.waitFor();
         assert exitCode == 0;
         process.destroy();
+        log.info("lighthouse 검사 완료");
+    }
+
+    private boolean operateRobots(String homepage) {
+        log.info("robots.txt 검사 수행");
+
+        URI uri = UriComponentsBuilder
+                .fromUriString(homepage)
+                .path("/robots.txt")
+                .encode()
+                .build()
+                .toUri();
+
+        RestTemplate restTemplate = new RestTemplate();
+        String robots = restTemplate.getForObject(uri, String.class);
+
+        // robots.txt가 없거나, 완전 허용에 해당하는 경우
+        return robots == null || (robots.contains("User-agent") && !robots.contains("disallow"));
     }
 
     private JSONObject processValidatorResult(String s) {

@@ -1,5 +1,6 @@
 package com.example.QCA.QualityControlAutomation.domain;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,6 +28,8 @@ public class ControlResult {
 
     @Lob
     private String validator;
+
+    private boolean robot;
 
     @Nullable
     private LocalDate recentRequestedDate;
