@@ -29,7 +29,8 @@ public class ControlResult {
     @Lob
     private String validator;
 
-    private boolean robot;
+    @Lob
+    private String robot;
 
     @Nullable
     private LocalDate recentRequestedDate;

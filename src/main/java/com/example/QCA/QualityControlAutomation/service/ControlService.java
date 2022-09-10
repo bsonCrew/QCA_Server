@@ -145,8 +145,11 @@ public class ControlService {
         log.info("lighthouse 검사 완료");
     }
 
-    private boolean operateRobots(String homepage) {
+    private String operateRobots(String homepage) {
         log.info("robots.txt 검사 수행");
+
+        // 맨 마지막 / 제외
+        if (homepage.charAt(homepage.length() - 1) == '/') homepage = homepage.substring(0, homepage.length() - 1);
 
         URI uri = UriComponentsBuilder
                 .fromUriString(homepage)
@@ -156,10 +159,10 @@ public class ControlService {
                 .toUri();
 
         RestTemplate restTemplate = new RestTemplate();
-        String robots = restTemplate.getForObject(uri, String.class);
+        String result = restTemplate.getForObject(uri, String.class);
 
-        // robots.txt가 없거나, 완전 허용에 해당하는 경우
-        return robots == null || (robots.contains("User-agent") && !robots.contains("disallow"));
+        if (result == null) return null;
+        return parseRobot(result.split("\r\n"));
     }
 
     private JSONObject processValidatorResult(String s) {
@@ -179,6 +182,20 @@ public class ControlService {
     private JSONObject parseJson(String fileName) throws IOException, ParseException {
         log.info("json Name : {}", fileName);
         return (JSONObject) new JSONParser().parse(new FileReader(outputPath + fileName + "_output.json"));
+    }
+
+    private String parseRobot(String[] robotContent) {
+        JSONArray jsonArray = new JSONArray();
+
+        for (String rc : robotContent) {
+            String[] tmp = rc.split(":");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type", tmp[0].replace(" ", ""));
+            jsonObject.put("value", tmp[1].replace(" ", ""));
+            jsonArray.add(jsonObject);
+        }
+
+        return jsonArray.toJSONString();
     }
 
     // 두 날짜의 기간 차이를 달 기준으로 비교하여 반환하는 함수
