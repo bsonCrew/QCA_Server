@@ -20,7 +20,6 @@ public class HomeController {
     }
 
     @GetMapping(value = "/list")
-    @ResponseBody
     public CommonResponse resultList() {
         log.info("GET request, resultList 호출");
         return controlService.findList();
