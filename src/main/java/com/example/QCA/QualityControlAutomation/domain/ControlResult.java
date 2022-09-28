@@ -1,6 +1,5 @@
 package com.example.QCA.QualityControlAutomation.domain;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,9 +21,6 @@ public class ControlResult {
 
     @Lob
     private String audits;
-
-    @Lob
-    private String categoryScore;
 
     @Lob
     private String validator;

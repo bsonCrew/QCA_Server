@@ -107,7 +107,6 @@ public class ControlService {
         JSONObject jsonObject = parseJson(homepage.replace("/", "").replace("http:", "").replace("https:", ""));
 
         controlResult.setAudits(jsonObject.get("audits").toString());
-        controlResult.setCategoryScore(jsonObject.get("categories").toString());
 
         return controlResult;
     }
