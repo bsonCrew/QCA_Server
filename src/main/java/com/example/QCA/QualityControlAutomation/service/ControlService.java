@@ -118,9 +118,10 @@ public class ControlService {
         Process process = runtime.exec(vnuCommand + homepage);
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-            String s;
-            while ((s = br.readLine()) != null)
-                validator.add(processValidatorResult(s));
+            String s = br.readLine();
+
+            if (s != null)
+                validator = processValidatorResult(s);
         } catch (Exception e) {
             log.error("validator 실행 도중 에러 발생 : {}", e.getMessage());
         } finally {
@@ -164,18 +165,9 @@ public class ControlService {
         return parseRobot(result.split("\r\n"));
     }
 
-    private JSONObject processValidatorResult(String s) {
-        JSONObject jsonObject = new JSONObject();
-        String[] tokens = s.split(":");
-        String type = "warning";
-
-        if (!tokens[3].contains(type)) type = "error";
-        String desc = tokens[4];
-
-        jsonObject.put("type", type);
-        jsonObject.put("description", desc);
-
-        return jsonObject;
+    private JSONArray processValidatorResult(String s) throws ParseException {
+        JSONObject jsonObject = (JSONObject) new JSONParser().parse(s);
+        return (JSONArray) jsonObject.get("messages");
     }
 
     private JSONObject parseJson(String fileName) throws IOException, ParseException {
@@ -209,7 +201,7 @@ public class ControlService {
 
     private void initPath() {
         filePath = isWindow ? env.getProperty("windowsFilePath") : env.getProperty("macFilePath");
-        vnuCommand = "java -jar " + filePath + env.getProperty("vnuPath") + " ";
+        vnuCommand = "java -jar " + filePath + env.getProperty("vnuPath") + " --format json ";
         outputPath = filePath + env.getProperty("outputPath");
     }
 }
