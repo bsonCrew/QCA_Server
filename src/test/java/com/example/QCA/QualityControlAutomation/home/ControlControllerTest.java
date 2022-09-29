@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Spring REST docs 자동 설정을 위함
 @AutoConfigureRestDocs
 @SpringBootTest
-class HomeControllerTest {
+class ControlControllerTest {
 
     // MockMvc 객체 생성
     @Autowired

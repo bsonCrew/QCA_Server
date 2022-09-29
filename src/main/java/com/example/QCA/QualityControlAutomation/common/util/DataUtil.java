@@ -1,6 +1,6 @@
-package com.example.QCA.QualityControlAutomation.util;
+package com.example.QCA.QualityControlAutomation.common.util;
 
-import com.example.QCA.QualityControlAutomation.domain.InitInfo;
+import com.example.QCA.QualityControlAutomation.common.InitInfo;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

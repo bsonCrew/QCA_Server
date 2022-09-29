@@ -1,12 +1,12 @@
-package com.example.QCA.QualityControlAutomation.service;
+package com.example.QCA.QualityControlAutomation.control.application.service;
 
-import com.example.QCA.QualityControlAutomation.domain.ControlResult;
-import com.example.QCA.QualityControlAutomation.domain.InitInfo;
-import com.example.QCA.QualityControlAutomation.dto.ControlRequest;
-import com.example.QCA.QualityControlAutomation.repository.ControlRepository;
+import com.example.QCA.QualityControlAutomation.control.domain.ControlResult;
+import com.example.QCA.QualityControlAutomation.common.InitInfo;
+import com.example.QCA.QualityControlAutomation.control.presentation.dto.ControlRequest;
+import com.example.QCA.QualityControlAutomation.control.domain.repository.ControlRepository;
 import com.example.QCA.QualityControlAutomation.response.CommonResponse;
 import com.example.QCA.QualityControlAutomation.response.ResponseService;
-import com.example.QCA.QualityControlAutomation.util.DataUtil;
+import com.example.QCA.QualityControlAutomation.common.util.DataUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

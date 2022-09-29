@@ -1,4 +1,4 @@
-package com.example.QCA.QualityControlAutomation.domain;
+package com.example.QCA.QualityControlAutomation.control.domain;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
