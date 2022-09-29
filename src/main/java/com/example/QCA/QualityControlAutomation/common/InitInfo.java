@@ -1,4 +1,4 @@
-package com.example.QCA.QualityControlAutomation.domain;
+package com.example.QCA.QualityControlAutomation.common;
 
 import lombok.Getter;
 

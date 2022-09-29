@@ -1,4 +1,4 @@
-package com.example.QCA.QualityControlAutomation.dto;
+package com.example.QCA.QualityControlAutomation.control.presentation.dto;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
