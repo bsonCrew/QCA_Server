@@ -32,7 +32,6 @@ public class ControlService {
 
     private final ControlRepository controlRepository;
     private final ResponseService responseService;
-    private final boolean isWindow;
     private final Environment env;
 
     @Autowired
@@ -40,10 +39,11 @@ public class ControlService {
         this.controlRepository = controlRepository;
         this.responseService = responseService;
         this.env = env;
-        this.isWindow = System.getProperty("os.name").toLowerCase().contains("windows");
     }
 
     private String filePath;
+
+    private String utilPath;
 
     private String vnuCommand;
 
@@ -136,7 +136,7 @@ public class ControlService {
         log.info("lighthouse 검사 수행");
         ProcessBuilder pb = new ProcessBuilder("sh", "lighthouse.sh", homepage);
         pb.redirectErrorStream(true);
-        pb.directory(new File(filePath));
+        pb.directory(new File(utilPath));
         Process process = pb.start();
 
         int exitCode = process.waitFor();
@@ -200,7 +200,8 @@ public class ControlService {
     }
 
     private void initPath() {
-        filePath = isWindow ? env.getProperty("windowsFilePath") : env.getProperty("macFilePath");
+        filePath = env.getProperty("filePath");
+        utilPath = filePath + env.getProperty("utilPath");
         vnuCommand = "java -jar " + filePath + env.getProperty("vnuPath") + " --format json ";
         outputPath = filePath + env.getProperty("outputPath");
     }

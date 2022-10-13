@@ -1,0 +1,25 @@
+module.exports = {
+	extends: "lighthouse:default",
+	settings: {
+		skipAudits: [
+			"robots-txt",
+			"full-page-screenshot",
+			"apple-touch-icon",
+			"installable-manifest",
+			"pwa-cross-browser",
+			"pwa-each-page-has-url",
+			"pwa-page-transitions",
+			"maskable-icon",
+			"metrics",
+			"oopif-iframe-test-audit",
+			"screenshot-thumbnails",
+			"service-worker",
+			"themed-omnibox",
+			"valid-source-maps",
+			"work-during-interaction",
+			"final-screenshot",
+			"inspector-issues",
+			"largest-contentful-paint-element",
+		],
+	},
+};
