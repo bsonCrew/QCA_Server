@@ -14,8 +14,12 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -158,8 +162,14 @@ public class ControlService {
                 .build()
                 .toUri();
 
-        RestTemplate restTemplate = new RestTemplate();
-        String result = restTemplate.getForObject(uri, String.class);
+        String result;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            result = restTemplate.getForObject(uri, String.class);
+        } catch (HttpClientErrorException | HttpServerErrorException exception) {
+            log.info("robots.txt 파싱 중 에러 발생 : {}", exception.getMessage());
+            result = null;
+        }
 
         if (result == null) return null;
         return parseRobot(result.split("\r\n"));
