@@ -76,8 +76,9 @@ public class ControlService {
 
         String homepage = controlRequest.getUrl();
         LocalDate requestedDate = controlRequest.getRequestedDate();
+        boolean requestNewVal = controlRequest.isRequestNewVal();
 
-        log.info("요청 정보 // homepage : " + homepage + ", requestedDate : " + requestedDate);
+        log.info("요청 정보 // homepage : {}, requestedDate : {}, requestNewVal : {}", homepage, requestedDate, requestNewVal);
 
         // Repository 조회, 값이 무조건 있음
         // 단지 요청날짜가 있냐, 없냐의 차이고, 있다면 1달 이내인지 비교해야 함
@@ -88,8 +89,8 @@ public class ControlService {
 
         log.info("조회 정보 // label : " + label + ", recentRequestDate : " + recentRequestDate);
 
-        // 저장된 날짜가 없거나, 검사한 지 1달이 넘은 경우는 새로 검사하고, 결과를 저장한다.
-        if (recentRequestDate == null || !isinMonth(requestedDate, recentRequestDate)) {
+        // 새로 검사하는 경우는 requestNewVal이 True이거나, DB에 검사한 날짜가 없거나, 검사한 지 1달이 넘은 경우이다.
+        if (requestNewVal || recentRequestDate == null || !isinMonth(requestedDate, recentRequestDate)) {
             findResult = operateQualityControl(label, homepage, requestedDate);
             controlRepository.save(findResult);
         }
