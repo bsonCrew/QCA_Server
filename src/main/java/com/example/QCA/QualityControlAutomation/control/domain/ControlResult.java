@@ -14,9 +14,9 @@ import java.time.LocalDate;
 @Entity
 public class ControlResult {
 
-    @Id
     private String label;
 
+    @Id
     private String homepage;
 
     @Lob
@@ -34,5 +34,14 @@ public class ControlResult {
     public ControlResult(String label, String homepage) {
         this.label = label;
         this.homepage = homepage;
+    }
+
+    public ControlResult(String label, String homepage, String audits, String validator, String robot, @Nullable LocalDate recentRequestedDate) {
+        this.label = label;
+        this.homepage = homepage;
+        this.audits = audits;
+        this.validator = validator;
+        this.robot = robot;
+        this.recentRequestedDate = recentRequestedDate;
     }
 }
