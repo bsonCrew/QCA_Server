@@ -68,7 +68,7 @@ class ControlControllerTest {
                 MockMvcRequestBuilders
                         .post("/api/control")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"url\": \"https://www.gokams.or.kr\", \n\"requestedDate\": \"" + LocalDate.now() + "\", \n\"requestNewVal\": \"" + true + "}")
+                        .content("{\"url\": \"https://www.kosha.or.kr\", \n\"requestedDate\": \"" + LocalDate.now() + "\", \n\"requestNewVal\": " + true + "}")
         )
                 .andExpect(status().isOk())
                 .andDo(
@@ -77,7 +77,8 @@ class ControlControllerTest {
                                 preprocessResponse(prettyPrint()),
                                 requestFields(
                                         fieldWithPath("url").description("검사 요청 주소"),
-                                        fieldWithPath("requestedDate").description("검사 요청 날짜")
+                                        fieldWithPath("requestedDate").description("검사 요청 날짜"),
+                                        fieldWithPath("requestNewVal").description("새 진단 요청 여부")
                                 ),
                                 responseFields(
                                     fieldWithPath("status").type(JsonFieldType.NUMBER).description("상태 코드"),
@@ -98,11 +99,12 @@ class ControlControllerTest {
     @Test
     @Transactional
     void controlTestWithFalse() throws Exception {
+        // 요청 URL의 진단 결과가 이미 DB에 저장되어 있는 경우, 최근 진단 날짜도 1달 이내인 경우
         mockMvc.perform(
                         MockMvcRequestBuilders
                                 .post("/api/control")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"url\": \"https://www.gokams.or.kr\", \n\"requestedDate\": \"" + LocalDate.now() + "\", \n\"requestNewVal\": \"" + false + "}")
+                                .content("{\"url\": \"https://www.kosha.or.kr\", \n\"requestedDate\": \"" + LocalDate.now() + "\", \n\"requestNewVal\": " + false + "}")
                 )
                 .andExpect(status().isOk())
                 .andDo(
@@ -111,7 +113,43 @@ class ControlControllerTest {
                                 preprocessResponse(prettyPrint()),
                                 requestFields(
                                         fieldWithPath("url").description("검사 요청 주소"),
-                                        fieldWithPath("requestedDate").description("검사 요청 날짜")
+                                        fieldWithPath("requestedDate").description("검사 요청 날짜"),
+                                        fieldWithPath("requestNewVal").description("새 진단 요청 여부")
+                                ),
+                                responseFields(
+                                        fieldWithPath("status").type(JsonFieldType.NUMBER).description("상태 코드"),
+                                        fieldWithPath("message").type(JsonFieldType.STRING).description("반환 메세지"),
+                                        fieldWithPath("data").type(JsonFieldType.OBJECT).description("결과"),
+                                        fieldWithPath("data.label").type(JsonFieldType.STRING).description("웹사이트 명"),
+                                        fieldWithPath("data.homepage").type(JsonFieldType.STRING).description("웹사이트 주소"),
+                                        fieldWithPath("data.audits").type(JsonFieldType.STRING).description("웹사이트에 대한 lighthouse 검사 결과"),
+                                        fieldWithPath("data.validator").type(JsonFieldType.STRING).description("W3C validator 결과"),
+                                        fieldWithPath("data.robot").type(JsonFieldType.STRING).description("robots.txt 파싱 결과"),
+                                        fieldWithPath("data.recentRequestedDate").type(JsonFieldType.STRING).description("최근 검사 요청 날짜")
+                                )
+                        )
+                );
+    }
+
+    @DisplayName("URL 진단 요청 - 이미 저장되어 있는 도메인의 새로운 하위 웹사이트")
+    @Test
+    @Transactional
+    void controlTestAboutSubWebsite() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/api/control")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"url\": \"https://www.kosha.or.kr/kosha/intro/ceoMessage.do\", \n\"requestedDate\": \"" + LocalDate.now() + "\", \n\"requestNewVal\": " + false + "}")
+                )
+                .andExpect(status().isOk())
+                .andDo(
+                        document("control-post",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                requestFields(
+                                        fieldWithPath("url").description("검사 요청 주소"),
+                                        fieldWithPath("requestedDate").description("검사 요청 날짜"),
+                                        fieldWithPath("requestNewVal").description("새 진단 요청 여부")
                                 ),
                                 responseFields(
                                         fieldWithPath("status").type(JsonFieldType.NUMBER).description("상태 코드"),
