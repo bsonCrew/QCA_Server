@@ -14,8 +14,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -68,8 +66,7 @@ public class ControlService {
     }
 
     public CommonResponse findList() {
-        List<ControlResult> list = controlRepository.findTop5ByRecentRequestedDateIsNotNullOrderByRecentRequestedDateDesc();
-        if (list.isEmpty()) list.add(new ControlResult());
+        List<ControlResult> list = controlRepository.findTop5List();
         return responseService.getListResponse(list);
     }
 

@@ -6,6 +6,8 @@ import lombok.Setter;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDate;
 
 @Getter
@@ -43,5 +45,10 @@ public class ControlResult {
         this.validator = validator;
         this.robot = robot;
         this.recentRequestedDate = recentRequestedDate;
+    }
+
+    public boolean checkDomain() {
+        // 도메인을 다 지웠을 때 아무것도 안 남는지 확인
+        return this.homepage.replaceAll("^(https?):\\/\\/([^:\\/\\s]+)", "").equals("");
     }
 }
