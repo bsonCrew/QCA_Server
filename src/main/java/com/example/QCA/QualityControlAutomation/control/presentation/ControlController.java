@@ -33,10 +33,10 @@ public class ControlController {
     }
 
     // 처음 한 번만 실행
-//    @GetMapping()
-//    public void dbInit() throws Exception {
-//        log.info("DB 초기화");
-//        controlService.setLabelAndHomepage();
-//        log.info("DB 초기화 완료");
-//    }
+    @GetMapping()
+    public void dbInit() throws Exception {
+        log.info("DB 초기화");
+        controlService.setLabelAndHomepage();
+        log.info("DB 초기화 완료");
+    }
 }
