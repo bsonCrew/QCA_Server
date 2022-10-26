@@ -25,6 +25,7 @@ import java.io.*;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
@@ -44,9 +45,8 @@ public class ControlService {
         this.controlRepository = controlRepository;
         this.responseService = responseService;
         this.env = env;
+        initPath();
     }
-
-    private String filePath;
 
     private String utilPath;
 
@@ -66,22 +66,18 @@ public class ControlService {
     }
 
     public CommonResponse findList() {
-        List<ControlResult> list = controlRepository.findTop5List();
-        return responseService.getListResponse(list);
+        return responseService.getListResponse(controlRepository.findTop5List());
     }
 
     @Transactional
     public CommonResponse findControlResult(ControlRequest controlRequest) throws Exception {
-        initPath();
-
-        // 맨 뒤 / 제거
-        StringBuilder tmp = new StringBuilder(controlRequest.getUrl());
-        if (tmp.charAt(tmp.length() - 1) == '/')
-            tmp.deleteCharAt(tmp.length() - 1);
-
-        String homepage = tmp.toString();
-        String domain = parseHomepage(homepage);
         LocalDate requestedDate = controlRequest.getRequestedDate();
+
+        // 오늘보다 뒷 날짜인지 확인
+        checkDateValidation(requestedDate);
+
+        String homepage = removeSlash(controlRequest.getUrl());
+        String domain = parseHomepage(homepage);
         boolean requestNewVal = controlRequest.isRequestNewVal();
         ControlResult result;
         String label;
@@ -101,7 +97,7 @@ public class ControlService {
             findResult = controlRepository.findByHomepage(domain);
 
             if (findResult.isEmpty())
-                throw new RuntimeException("유효하지 않은 URL입니다.");
+                throw new NoSuchElementException("유효하지 않은 URL입니다.");
             else {
                 // 도메인은 존재하는 경우, 따라서 해당 도메인의 하위 페이지에 대한 검사 요청
                 label = findResult.get().getLabel();
@@ -115,6 +111,9 @@ public class ControlService {
             ControlResult controlResult = findResult.get();
             label = controlResult.getLabel();
             LocalDate recentRequestDate = controlResult.getRecentRequestedDate();
+
+            // 이미 진단된 결과 날짜보다 더 앞인 경우인지 확인
+            checkDateValidation(requestedDate, recentRequestDate);
 
             // 새로 검사하는 경우는 requestNewVal이 True이거나, DB에 검사한 날짜가 없거나, 검사한 지 1달이 넘은 경우이다.
             if (requestNewVal || recentRequestDate == null || !isinMonth(requestedDate, recentRequestDate))
@@ -137,8 +136,6 @@ public class ControlService {
         String robot = operateRobots(domain);
         operateLighthouse(homepage, jsonName);
         String audits = parseJson(jsonName).get("audits").toString();
-        // TODO json 삭제
-        // deleteJson(jsonName);
         log.info("-----검사 완료-----");
 
         return new ControlResult(label, homepage, audits, validator, robot, requestedDate);
@@ -181,9 +178,6 @@ public class ControlService {
     private String operateRobots(String homepage) {
         log.info("robots.txt 검사 수행");
 
-        // 맨 마지막 / 제외
-        if (homepage.charAt(homepage.length() - 1) == '/') homepage = homepage.substring(0, homepage.length() - 1);
-
         URI uri = UriComponentsBuilder
                 .fromUriString(homepage)
                 .path("/robots.txt")
@@ -200,6 +194,7 @@ public class ControlService {
             result = null;
         }
 
+        log.info("robots.txt 검사 완료");
         if (result == null) return null;
         return parseRobot(result.split("\r\n"));
     }
@@ -251,18 +246,38 @@ public class ControlService {
         return jsonArray.toJSONString();
     }
 
+    // 진단 요청 날짜가 현재보다 뒤인지 확인
+    private void checkDateValidation(LocalDate date) {
+        if (LocalDate.now().isBefore(date))
+            throw new DateTimeException("진단 요청날짜가 현재보다 뒤일 수 없습니다.");
+    }
+
+    // 진단 요청 날짜가 이미 진단된 결과의 날짜보다 앞인지 확인
+    private void checkDateValidation(LocalDate requestedDate, LocalDate recentRequestDate) {
+        if (recentRequestDate == null) return;
+
+        if (requestedDate.isBefore(recentRequestDate))
+            throw new DateTimeException("요청날짜가 저장된 날짜보다 먼저일 수 없습니다.");
+    }
+
+    // 맨 뒤 '/' 제거
+    private String removeSlash(String url) {
+        StringBuilder tmp = new StringBuilder(url);
+        if (tmp.charAt(tmp.length() - 1) == '/')
+            tmp.deleteCharAt(tmp.length() - 1);
+
+        return tmp.toString();
+    }
+
     // 두 날짜의 기간 차이를 달 기준으로 비교하여 반환하는 함수
     private boolean isinMonth(LocalDate requestedDate, LocalDate recentRequestDate) {
-        if (requestedDate.isBefore(recentRequestDate))
-            throw new RuntimeException("요청날짜가 저장된 날짜보다 먼저일 수 없습니다.");
-
         // 기간 차이가 1달 이내라면 true 반환
         Period period = Period.between(recentRequestDate, requestedDate);
         return period.getMonths() == 0;
     }
 
     private void initPath() {
-        filePath = env.getProperty("filePath");
+        String filePath = env.getProperty("filePath");
         utilPath = filePath + env.getProperty("utilPath");
         vnuCommand = "java -jar " + filePath + env.getProperty("vnuPath") + " --format json ";
         outputPath = filePath + env.getProperty("outputPath");
