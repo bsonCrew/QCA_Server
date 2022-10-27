@@ -73,7 +73,8 @@ public class ControlService {
     public CommonResponse findControlResult(ControlRequest controlRequest) throws Exception {
         LocalDate requestedDate = controlRequest.getRequestedDate();
 
-        // 오늘보다 뒷 날짜인지 확인
+        // 날짜가 null인지와 오늘보다 뒷 날짜인지 확인
+        // 같은 날이어도 통과
         checkDateValidation(requestedDate);
 
         String homepage = removeSlash(controlRequest.getUrl());
@@ -113,6 +114,7 @@ public class ControlService {
             LocalDate recentRequestDate = controlResult.getRecentRequestedDate();
 
             // 이미 진단된 결과 날짜보다 더 앞인 경우인지 확인
+            // 같은 날이면 requestNewVal에 따라 진행하기에 같은 날도 통과
             checkDateValidation(requestedDate, recentRequestDate);
 
             // 새로 검사하는 경우는 requestNewVal이 True이거나, DB에 검사한 날짜가 없거나, 검사한 지 1달이 넘은 경우이다.
@@ -246,10 +248,10 @@ public class ControlService {
         return jsonArray.toJSONString();
     }
 
-    // 진단 요청 날짜가 현재보다 뒤인지 확인
+    // 진단 요청 날짜가 null인지와 오늘보다 뒤인지 확인
     private void checkDateValidation(LocalDate date) {
-        if (LocalDate.now().isBefore(date))
-            throw new DateTimeException("진단 요청날짜가 현재보다 뒤일 수 없습니다.");
+        if (date == null || date.isBefore(LocalDate.now()))
+            throw new DateTimeException("진단 요청날짜가 현재보다 뒤거나, 없을 수 없습니다.");
     }
 
     // 진단 요청 날짜가 이미 진단된 결과의 날짜보다 앞인지 확인
@@ -263,6 +265,10 @@ public class ControlService {
     // 맨 뒤 '/' 제거
     private String removeSlash(String url) {
         StringBuilder tmp = new StringBuilder(url);
+
+        if (tmp.length() == 0)
+            throw new StringIndexOutOfBoundsException("문자열이 없습니다.");
+
         if (tmp.charAt(tmp.length() - 1) == '/')
             tmp.deleteCharAt(tmp.length() - 1);
 
