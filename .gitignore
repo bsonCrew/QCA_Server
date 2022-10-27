@@ -8,6 +8,7 @@ HELP.md
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+/src/main/java/com/example/QCA/QualityControlAutomation/common/util/lighthouse.sh
 /src/output
 /bin
 
