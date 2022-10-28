@@ -21,14 +21,14 @@ public class ControlController {
 
     @GetMapping(value = "/list")
     public CommonResponse resultList() {
-        log.info("GET request, resultList 호출");
+        log.info("GET request");
         return controlService.findList();
     }
 
     @PostMapping("/control")
     public CommonResponse controlDetail(@RequestBody ControlRequest controlRequest) throws Exception {
         String url = controlRequest.getUrl();
-        log.info(url + " 에 대한 POST request, control 호출");
+        log.info(url + " 에 대한 POST request");
         return controlService.findControlResult(controlRequest);
     }
 

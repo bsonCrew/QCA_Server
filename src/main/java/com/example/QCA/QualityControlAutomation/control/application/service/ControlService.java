@@ -46,6 +46,8 @@ public class ControlService {
         this.responseService = responseService;
         this.env = env;
         initPath();
+        this.pb.redirectErrorStream(true);
+        this.pb.directory(new File(utilPath));
     }
 
     private String utilPath;
@@ -53,6 +55,8 @@ public class ControlService {
     private String vnuCommand;
 
     private String outputPath;
+
+    private ProcessBuilder pb;
 
     public void setLabelAndHomepage() throws Exception {
         DataUtil dataUtil = new DataUtil();
@@ -66,16 +70,24 @@ public class ControlService {
     }
 
     public CommonResponse findList() {
-        return responseService.getListResponse(controlRepository.findTop5List());
+        log.info("-----findList() 실행, DB 조회-----");
+        List<ControlResult> list = controlRepository.findTop5List();
+        log.info("-----DB 조회 완료-----");
+
+        return responseService.getListResponse(list);
     }
 
     @Transactional
     public CommonResponse findControlResult(ControlRequest controlRequest) throws Exception {
-        LocalDate requestedDate = controlRequest.getRequestedDate();
+        log.info("-----findControlResult() 실행-----");
 
+        LocalDate requestedDate = controlRequest.getRequestedDate();
+        log.info("진단 요청 날짜({})에 대한 유효성 확인", requestedDate);
         // 날짜가 null인지와 오늘보다 뒷 날짜인지 확인
         // 같은 날이어도 통과
         checkDateValidation(requestedDate);
+
+        log.info("진단 요청 날짜 유효성 확인 완료");
 
         String homepage = removeSlash(controlRequest.getUrl());
         String domain = parseHomepage(homepage);
@@ -84,7 +96,7 @@ public class ControlService {
         String label;
         String jsonName = String.valueOf(homepage.hashCode());
 
-        log.info("요청 정보 // homepage : {}, requestedDate : {}, requestNewVal : {}", homepage, requestedDate, requestNewVal);
+        log.info("요청 정보 ==> homepage : {}, requestedDate : {}, requestNewVal : {}", homepage, requestedDate, requestNewVal);
 
         // 단지 요청날짜가 있냐, 없냐의 차이고, 있다면 1달 이내인지 비교해야 함
         // 우선 입력 URL로 DB 조회
@@ -93,12 +105,11 @@ public class ControlService {
         // 조회된 값이 없는 경우
         if (findResult.isEmpty()) {
             // 도메인을 추출해서 DB에 조회
-            log.info("DOMAIN 조회 정보 // domain : {}", domain);
+            log.info("domain : {}", domain);
 
             findResult = controlRepository.findByHomepage(domain);
 
-            if (findResult.isEmpty())
-                throw new NoSuchElementException("유효하지 않은 URL입니다.");
+            if (findResult.isEmpty()) throw new NoSuchElementException("유효하지 않은 URL입니다.");
             else {
                 // 도메인은 존재하는 경우, 따라서 해당 도메인의 하위 페이지에 대한 검사 요청
                 label = findResult.get().getLabel();
@@ -133,12 +144,12 @@ public class ControlService {
     //
 
     private ControlResult operateAllControl(String label, String homepage, String domain, String jsonName, LocalDate requestedDate) throws Exception {
-        log.info("-----검사 수행-----");
+        log.info("-----진단 시작-----");
         String validator = operateValidator(homepage);
         String robot = operateRobots(domain);
         operateLighthouse(homepage, jsonName);
         String audits = parseJson(jsonName).get("audits").toString();
-        log.info("-----검사 완료-----");
+        log.info("-----진단 완료-----");
 
         return new ControlResult(label, homepage, audits, validator, robot, requestedDate);
     }
@@ -166,13 +177,14 @@ public class ControlService {
 
     private void operateLighthouse(String homepage, String jsonName) throws IOException, InterruptedException {
         log.info("lighthouse 검사 수행");
-        ProcessBuilder pb = new ProcessBuilder("sh", "lighthouse.sh", homepage, jsonName);
-        pb.redirectErrorStream(true);
-        pb.directory(new File(utilPath));
+        pb = new ProcessBuilder("sh", "lighthouse.sh", homepage, jsonName);
+
+        log.info("명령어 실행");
         Process process = pb.start();
 
         int exitCode = process.waitFor();
-        assert exitCode == 0;
+        if (exitCode != 0) throw new UnsupportedOperationException("Lighthouse 검사 중 문제가 발생했습니다.");
+
         process.destroy();
         log.info("lighthouse 검사 완료");
     }
@@ -225,8 +237,7 @@ public class ControlService {
             Files.delete(Path.of(json));
             log.info("Lighthouse json 파일 삭제");
         }
-        else
-            log.info("Lighthouse json 파일을 찾을 수 없거나, 삭제할 수 없음");
+        else log.info("Lighthouse json 파일을 찾을 수 없거나, 삭제할 수 없음");
 
         return jsonObject;
     }
@@ -258,19 +269,16 @@ public class ControlService {
     private void checkDateValidation(LocalDate requestedDate, LocalDate recentRequestDate) {
         if (recentRequestDate == null) return;
 
-        if (requestedDate.isBefore(recentRequestDate))
-            throw new DateTimeException("요청날짜가 저장된 날짜보다 먼저일 수 없습니다.");
+        if (requestedDate.isBefore(recentRequestDate)) throw new DateTimeException("요청날짜가 저장된 날짜보다 먼저일 수 없습니다.");
     }
 
     // 맨 뒤 '/' 제거
     private String removeSlash(String url) {
         StringBuilder tmp = new StringBuilder(url);
 
-        if (tmp.length() == 0)
-            throw new StringIndexOutOfBoundsException("문자열이 없습니다.");
+        if (tmp.length() == 0) throw new StringIndexOutOfBoundsException("문자열이 없습니다.");
 
-        if (tmp.charAt(tmp.length() - 1) == '/')
-            tmp.deleteCharAt(tmp.length() - 1);
+        if (tmp.charAt(tmp.length() - 1) == '/') tmp.deleteCharAt(tmp.length() - 1);
 
         return tmp.toString();
     }
