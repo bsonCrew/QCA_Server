@@ -95,7 +95,7 @@ public class ControlService {
         boolean requestNewVal = controlRequest.isRequestNewVal();
         ControlResult result;
         String label;
-        String jsonName = String.valueOf(homepage.hashCode());
+        String jsonName = (requestedDate + String.valueOf(homepage.hashCode())).replace("-", "_");
 
         log.info("요청 정보 ==> homepage : {}, requestedDate : {}, requestNewVal : {}", homepage, requestedDate, requestNewVal);
 
@@ -178,15 +178,16 @@ public class ControlService {
 
     private void operateLighthouse(String homepage, String jsonName) throws IOException, InterruptedException {
         log.info("lighthouse 검사 수행");
-        pb = new ProcessBuilder("sh", "lighthouse.sh", homepage, jsonName);
-
-        log.info("명령어 실행");
-        Process process = pb.start();
-
+        Process process = pb.command("sh", "lighthouse.sh", homepage, jsonName).start();
         int exitCode = process.waitFor();
-        if (exitCode != 0) throw new UnsupportedOperationException("Lighthouse 검사 중 문제가 발생했습니다.");
 
         process.destroy();
+
+        if (exitCode != 0) {
+            log.info("exitCode : {}", exitCode);
+            throw new UnsupportedOperationException("lighthouse 검사 중 문제가 발생했습니다.");
+        }
+
         log.info("lighthouse 검사 완료");
     }
 
