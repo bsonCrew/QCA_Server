@@ -14,6 +14,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -22,6 +23,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.*;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -250,21 +253,22 @@ public class ControlService {
         for (String rc : robotContent) {
             if (Objects.equals(rc, "") || rc.charAt(0) == '#') continue;
 
-            // 공백 기준으로 split
-            String[] tmp = rc.split(" ");
+            // : 기준으로 split
+            String type = rc.split(":")[0];
+            String value = rc.substring(type.length() + 1).replace(" ", "");
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("type", tmp[0].replace(":", ""));
-            jsonObject.put("value", tmp[1]);
+            jsonObject.put("type", type);
+            jsonObject.put("value", value);
             jsonArray.add(jsonObject);
         }
 
         return jsonArray.toJSONString();
     }
 
-    // 진단 요청 날짜가 null인지와 오늘보다 뒤인지 확인
+    // 진단 요청 날짜가 null인지 확인
     private void checkDateValidation(LocalDate date) {
-        if (date == null || date.isBefore(LocalDate.now()))
-            throw new DateTimeException("진단 요청날짜가 현재보다 뒤거나, 없을 수 없습니다.");
+        if (date == null)
+            throw new DateTimeException("진단 요청날짜가 없습니다.");
     }
 
     // 진단 요청 날짜가 이미 진단된 결과의 날짜보다 앞인지 확인
