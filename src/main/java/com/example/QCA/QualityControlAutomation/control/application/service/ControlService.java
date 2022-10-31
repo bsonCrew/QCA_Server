@@ -46,6 +46,7 @@ public class ControlService {
         this.responseService = responseService;
         this.env = env;
         initPath();
+        this.pb = new ProcessBuilder();
         this.pb.redirectErrorStream(true);
         this.pb.directory(new File(utilPath));
     }
