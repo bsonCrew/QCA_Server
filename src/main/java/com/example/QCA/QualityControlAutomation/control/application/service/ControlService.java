@@ -234,15 +234,10 @@ public class ControlService {
 
     private JSONObject parseJson(String fileName) throws IOException, ParseException {
         log.info("json Name : {}", fileName);
+
         String json = outputPath + fileName + "_output.json";
         JSONObject jsonObject = (JSONObject) new JSONParser().parse(new FileReader(json));
-        File file = new File(json);
-
-        if (file.exists()) {
-            Files.delete(Path.of(json));
-            log.info("Lighthouse json 파일 삭제");
-        }
-        else log.info("Lighthouse json 파일을 찾을 수 없거나, 삭제할 수 없음");
+        removeJson(json);
 
         return jsonObject;
     }
@@ -287,6 +282,16 @@ public class ControlService {
         if (tmp.charAt(tmp.length() - 1) == '/') tmp.deleteCharAt(tmp.length() - 1);
 
         return tmp.toString();
+    }
+
+    private void removeJson(String json) throws IOException {
+        File file = new File(json);
+
+        if (file.exists()) {
+            Files.delete(Path.of(json));
+            log.info("lighthouse json 파일 삭제");
+        }
+        else log.info("lighthouse json 파일을 찾을 수 없거나, 삭제할 수 없음");
     }
 
     // 두 날짜의 기간 차이를 달 기준으로 비교하여 반환하는 함수
