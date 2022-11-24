@@ -245,6 +245,10 @@ public class ControlService {
     private String parseRobot(String[] robotContent) {
         JSONArray jsonArray = new JSONArray();
 
+        if (robotContent.length == 1) {
+            robotContent = robotContent[0].split("\n");
+        }
+
         for (String rc : robotContent) {
             if (Objects.equals(rc, "") || rc.charAt(0) == '#') continue;
 
