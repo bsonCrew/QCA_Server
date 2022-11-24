@@ -133,7 +133,6 @@ public class ControlService {
             if (findResult.isEmpty()) {
                 throw new NoSuchElementException("유효하지 않은 URL입니다.");
             }
-
             return operateAllControl(findResult.get().getLabel(), homepage, domain, jsonName, requestedDate);
         }
 
@@ -142,6 +141,34 @@ public class ControlService {
         // date는 검사를 수행하게 되면 변경
         ControlResult controlResult = findResult.get();
         LocalDate recentRequestDate = controlResult.getRecentRequestedDate();
+            label = findResult.get().getLabel();
+            result = operateAllControl(label, homepage, domain, jsonName, requestedDate);
+
+            controlRepository.save(result);
+            return responseService.getSingleResponse(result);
+        }
+        
+        // 조회된 값이 있음
+        // label, homepage, date는 존재
+        // date는 검사를 수행하게 되면 변경
+        ControlResult controlResult = findResult.get();
+        label = controlResult.getLabel();
+        LocalDate recentRequestDate = controlResult.getRecentRequestedDate();
+
+        // 이미 진단된 결과 날짜보다 더 앞인 경우인지 확인
+        // 같은 날이면 requestNewVal에 따라 진행하기에 같은 날도 통과
+        checkDateValidation(requestedDate, recentRequestDate);
+
+        // 새로 검사하는 경우는 requestNewVal이 True이거나, DB에 검사한 날짜가 없거나, 검사한 지 1달이 넘은 경우이다.
+        if (requestNewVal || recentRequestDate == null || !isinMonth(requestedDate, recentRequestDate)) {
+            result = operateAllControl(label, homepage, domain, jsonName, requestedDate);
+        } else {
+            result = controlResult;
+        }
+
+        controlRepository.save(result);
+        return responseService.getSingleResponse(result);
+    }
 
         // 이미 진단된 결과 날짜보다 더 앞인 경우인지 확인
         // 같은 날이면 requestNewVal에 따라 진행하기에 같은 날도 통과
