@@ -62,6 +62,9 @@ public class ControlService {
 
     private final ProcessBuilder pb;
 
+    /**
+    * DB에 전자정부 웹사이트 목록을 저장할 때 사용하는 메소드
+    * */
     public void setLabelAndHomepage() throws Exception {
         DataUtil dataUtil = new DataUtil();
         List<InitInfo> initInfoList = dataUtil.getLabelAndHomepage();
@@ -74,6 +77,10 @@ public class ControlService {
         controlRepository.saveAll(controlResultList);
     }
 
+    /**
+    * 최근 진단한 웹사이트 조회 시 사용하는 메소드
+     * @return CommonResponse
+    * */
     public CommonResponse findList() {
         log.info("-----findList() 실행, DB 조회-----");
         List<ControlResult> list = controlRepository.findTop5List();
@@ -82,6 +89,10 @@ public class ControlService {
         return responseService.getListResponse(list);
     }
 
+    /**
+    * 웹사이트 진단 요청 시 사용하는 메소드
+     * @return CommonResponse
+    * */
     @Transactional
     public CommonResponse findControlResult(ControlRequest controlRequest) throws Exception {
         log.info("-----findControlResult() 실행-----");
@@ -91,11 +102,19 @@ public class ControlService {
         // 같은 날이어도 통과
         checkDateValidation(requestedDate);
 
+        ControlResult controlResult = computeControlResult(controlRequest, requestedDate);
+        controlRepository.save(controlResult);
+        return responseService.getSingleResponse(controlResult);
+    }
+
+    /*
+    * private methods
+    * */
+
+    private ControlResult computeControlResult(ControlRequest controlRequest, LocalDate requestedDate) throws Exception {
         String homepage = removeSlash(controlRequest.getUrl());
         String domain = parseHomepage(homepage);
         boolean requestNewVal = controlRequest.isRequestNewVal();
-        ControlResult result;
-        String label;
         String jsonName = (requestedDate + String.valueOf(homepage.hashCode())).replace("-", "_");
 
         log.info("요청 정보 ==> homepage : {}, requestedDate : {}, requestNewVal : {}", homepage, requestedDate, requestNewVal);
@@ -114,14 +133,21 @@ public class ControlService {
             if (findResult.isEmpty()) {
                 throw new NoSuchElementException("유효하지 않은 URL입니다.");
             }
+            return operateAllControl(findResult.get().getLabel(), homepage, domain, jsonName, requestedDate);
+        }
 
+        // 조회된 값이 있는 경우
+        // label, homepage, date는 존재
+        // date는 검사를 수행하게 되면 변경
+        ControlResult controlResult = findResult.get();
+        LocalDate recentRequestDate = controlResult.getRecentRequestedDate();
             label = findResult.get().getLabel();
             result = operateAllControl(label, homepage, domain, jsonName, requestedDate);
 
             controlRepository.save(result);
             return responseService.getSingleResponse(result);
         }
-
+        
         // 조회된 값이 있음
         // label, homepage, date는 존재
         // date는 검사를 수행하게 되면 변경
@@ -144,10 +170,16 @@ public class ControlService {
         return responseService.getSingleResponse(result);
     }
 
-    //
-    // private methods
-    //
+        // 이미 진단된 결과 날짜보다 더 앞인 경우인지 확인
+        // 같은 날이면 requestNewVal에 따라 진행하기에 같은 날도 통과
+        checkDateValidation(requestedDate, recentRequestDate);
 
+        // 새로 검사하는 경우는 requestNewVal이 True이거나, DB에 검사한 날짜가 없거나, 검사한 지 1달이 넘은 경우이다.
+        if (requestNewVal || recentRequestDate == null || !isinMonth(requestedDate, recentRequestDate)) {
+            return operateAllControl(controlResult.getLabel(), homepage, domain, jsonName, requestedDate);
+        }
+        return controlResult;
+    }
     private ControlResult operateAllControl(String label, String homepage, String domain, String jsonName, LocalDate requestedDate) throws Exception {
         log.info("-----진단 시작-----");
         String validator = operateValidator(homepage);
