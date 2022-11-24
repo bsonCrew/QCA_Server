@@ -10,7 +10,6 @@ import java.util.List;
 @Slf4j
 public class ResponseService {
     // 단일 데이터만 전달
-    // /api/control - POST 요청에 사용
     public <T> SingleResponse<T> getSingleResponse(T data) {
         SingleResponse response = new SingleResponse();
         response.data = data;
@@ -19,7 +18,6 @@ public class ResponseService {
     }
 
     // 데이터 리스트를 전달
-    // /api/list - GET 요청에 사용
     public <T> ListResponse<T> getListResponse(List<T> data) {
         ListResponse<T> response = new ListResponse<>();
         response.data = data;

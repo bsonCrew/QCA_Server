@@ -7,6 +7,8 @@ import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class ControlRepositoryCustomImpl implements ControlRepositoryCustom {
@@ -17,7 +19,9 @@ public class ControlRepositoryCustomImpl implements ControlRepositoryCustom {
     public List<ControlResult> findTop5List() {
         List<ControlResult> tmpList = findUniqueLabelList();
 
-        if (tmpList.isEmpty()) return Collections.emptyList();
+        if (tmpList.isEmpty()) {
+            return Collections.emptyList();
+        }
 
         List<ControlResult> results = new ArrayList<>();
 
@@ -26,8 +30,10 @@ public class ControlRepositoryCustomImpl implements ControlRepositoryCustom {
             // label이 도메인이면 리스트에 추가
             if (controlResult.checkDomain()) {
                 results.add(controlResult);
-                // 5개가 채워지면 중단
-                if (results.size() == 5) break;
+            }
+            // 5개가 채워지면 중단
+            if (results.size() == 5) {
+                break;
             }
         }
 

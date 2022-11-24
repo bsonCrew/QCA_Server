@@ -21,8 +21,9 @@ public class DataUtil {
             JSONObject js = (JSONObject) object;
             StringBuilder homepage = new StringBuilder(js.get("homepage").toString());
             // 제일 뒤에 있는 / 제거
-            if (homepage.charAt(homepage.length() - 1) == '/')
+            if (homepage.charAt(homepage.length() - 1) == '/') {
                 homepage.deleteCharAt(homepage.length() - 1);
+            }
             list.add(new InitInfo((String) js.get("label"), homepage.toString()));
         }
 
